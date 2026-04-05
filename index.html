@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Test</title>
+
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+
+  <!-- Your Local aframe-ar -->
+  <script src="./aframe-ar-main/dist/aframe-ar.min.js"></script>
+</head>
+
+<body>
+
+<script>
+  function showMessage(message){
+    let hud = document.querySelector("#hud");
+    if(hud){
+      hud.setAttribute('value', message);
+    }
+  }
+
+  AFRAME.registerComponent('ar-logic',{
+    init: function(){
+      showMessage('AR logic working');
+    },
+
+    tick: function(){
+      let cam = document.querySelector("#cam");
+
+      if(!cam || !cam.components.raycaster){
+        return;
+      }
+
+      let circle = document.querySelector("#circle");
+
+      let intersection = cam.components.raycaster.getIntersection(circle);
+
+      if(!intersection){
+        return;
+      }
+
+      showMessage(
+        'Hit: ' + 
+        intersection.point.x.toFixed(2) + " " + 
+        intersection.point.z.toFixed(2)
+      );
+
+      circle.setAttribute('position', intersection.point);
+    }
+  });
+
+  // Touch to place model
+  window.addEventListener('touchstart', function(){
+    let box = document.querySelector("#box");
+    let circle = document.querySelector("#circle");
+
+    if(!box || !circle) return;
+
+    let pos = circle.getAttribute('position');
+    box.setAttribute('position', pos);
+  });
+</script>
+
+<a-scene ar ar-logic>
+
+  <!-- Camera -->
+  <a-camera 
+    id="cam" 
+    raycaster="objects: #circle"
+    cursor="rayOrigin: mouse">
+
+    <a-text 
+      id="hud"
+      value="Starting..."
+      position="0 -0.1 -0.5"
+      align="center"
+      width="2">
+    </a-text>
+
+  </a-camera>
+
+  <!-- Ground marker -->
+  <a-ring
+    id="circle"
+    rotation="-90 0 0"
+    inner-radius="0.05"
+    outer-radius="0.06"
+    position="0 0 -1"
+    color="red">
+  </a-ring>
+
+  <!-- 3D Model -->
+  <a-entity
+    id="box"
+    gltf-model="url(model/arCar.glb)"
+    scale="0.5 0.5 0.5"
+    position="0 0 -2">
+  </a-entity>
+
+  <!-- Lighting -->
+  <a-light type="ambient" intensity="1"></a-light>
+  <a-light type="directional" position="1 2 1"></a-light>
+
+</a-scene>
+
+</body>
+</html>
